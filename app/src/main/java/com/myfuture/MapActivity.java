@@ -143,14 +143,14 @@ public class MapActivity extends FragmentActivity implements LocationListener,
     private LocationClient locationClient;
 
     // Adapter for the Parse query
-    private ParseQueryAdapter<VerifyModel> posts;
+    private ParseQueryAdapter<VideoPostModel> posts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        radius = HuntApplication.getSearchDistance();
+        radius = MyFutureApplication.getSearchDistance();
         lastRadius = radius;
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_post_map);
 
         // Create a new global location parameters object
         locationRequest = LocationRequest.create();
@@ -168,11 +168,11 @@ public class MapActivity extends FragmentActivity implements LocationListener,
         locationClient = new LocationClient(this, this, this);
 
         // Set up a customized query
-        ParseQueryAdapter.QueryFactory<VerifyModel> factory =
-                new ParseQueryAdapter.QueryFactory<VerifyModel>() {
-                    public ParseQuery<VerifyModel> create() {
+        ParseQueryAdapter.QueryFactory<VideoPostModel> factory =
+                new ParseQueryAdapter.QueryFactory<VideoPostModel>() {
+                    public ParseQuery<VideoPostModel> create() {
                         Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
-                        ParseQuery<VerifyModel> query = VerifyModel.getQuery();
+                        ParseQuery<VideoPostModel> query = VideoPostModel.getQuery();
                         query.include("user");
                         query.orderByDescending("createdAt");
                         query.whereWithinKilometers("location", geoPointFromLocation(myLoc), radius
@@ -191,11 +191,11 @@ public class MapActivity extends FragmentActivity implements LocationListener,
         });
 
         // Set up the query adapter
-        posts = new ParseQueryAdapter<VerifyModel>(this, factory) {
+        posts = new ParseQueryAdapter<VideoPostModel>(this, factory) {
             @Override
-            public View getItemView(VerifyModel post, View view, ViewGroup parent) {
+            public View getItemView(VideoPostModel post, View view, ViewGroup parent) {
                 if (view == null) {
-                    view = View.inflate(getContext(), R.layout.anywall_post_item, null);
+                    view = View.inflate(getContext(), R.layout.list_post_items, null);
                 }
                 TextView contentView = (TextView) view.findViewById(R.id.contentView);
                 TextView usernameView = (TextView) view.findViewById(R.id.usernameView);
@@ -259,7 +259,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
                 // Only allow posts if we have a location
                 Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
                 if (myLoc == null) {
-                    Toast.makeText(GPS.this,
+                    Toast.makeText(MapActivity.this,
                             "Please try again after your location appears on the map.", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -274,13 +274,12 @@ public class MapActivity extends FragmentActivity implements LocationListener,
                 alert.setPositiveButton("Post", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         // Create a post.
-                        VerifyModel post = new VerifyModel();
+                        VideoPostModel post = new VideoPostModel();
                         // Set the location to the current user's location
                         post.setLocation(myPoint);
-                        post.setString(input.getText().toString());
+                        post.setTitle(input.getText().toString());
                         post.setAuthor(ParseUser.getCurrentUser());
                         ParseACL acl = new ParseACL();
-                        post.setClueID(HuntApplication.getCurrentClueString());
                         // Give public read access
                         acl.setPublicReadAccess(true);
                         post.setACL(acl);
@@ -340,7 +339,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
         super.onResume();
 
         // Get the latest search distance preference
-        radius = HuntApplication.getSearchDistance();
+        radius = MyFutureApplication.getSearchDistance();
         // Checks the last saved location to show cached data if it's available
         if (lastLocation != null) {
             LatLng myLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
@@ -379,27 +378,27 @@ public class MapActivity extends FragmentActivity implements LocationListener,
                     // If Google Play services resolved the problem
                     case Activity.RESULT_OK:
 
-                        if (HuntApplication.APPDEBUG) {
+                        if (MyFutureApplication.APPDEBUG) {
                             // Log the result
-                            Log.d(HuntApplication.APPTAG, "Connected to Google Play services");
+                            Log.d(MyFutureApplication.APPTAG, "Connected to Google Play services");
                         }
 
                         break;
 
                     // If any other result was returned by Google Play services
                     default:
-                        if (HuntApplication.APPDEBUG) {
+                        if (MyFutureApplication.APPDEBUG) {
                             // Log the result
-                            Log.d(HuntApplication.APPTAG, "Could not connect to Google Play services");
+                            Log.d(MyFutureApplication.APPTAG, "Could not connect to Google Play services");
                         }
                         break;
                 }
 
                 // If any other request code was received
             default:
-                if (HuntApplication.APPDEBUG) {
+                if (MyFutureApplication.APPDEBUG) {
                     // Report that this Activity received an unknown requestCode
-                    Log.d(HuntApplication.APPTAG, "Unknown request code received for the activity");
+                    Log.d(MyFutureApplication.APPTAG, "Unknown request code received for the activity");
                 }
                 break;
         }
@@ -407,7 +406,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
 
 
     public void endGPS(){
-        Intent i = new Intent(GPS.this, HuntActivity.class);
+        Intent i = new Intent(MapActivity.this, MainActivity.class);
         startActivity(i);
     }
     /*
@@ -421,9 +420,9 @@ public class MapActivity extends FragmentActivity implements LocationListener,
 
         // If Google Play services is available
         if (ConnectionResult.SUCCESS == resultCode) {
-            if (HuntApplication.APPDEBUG) {
+            if (MyFutureApplication.APPDEBUG) {
                 // In debug mode, log the status
-                Log.d(HuntApplication.APPTAG, "Google play services available");
+                Log.d(MyFutureApplication.APPTAG, "Google play services available");
             }
             // Continue
             return true;
@@ -434,7 +433,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
             if (dialog != null) {
                 ErrorDialogFragment errorFragment = new ErrorDialogFragment();
                 errorFragment.setDialog(dialog);
-                errorFragment.show(getSupportFragmentManager(), HuntApplication.APPTAG);
+                errorFragment.show(getSupportFragmentManager(), MyFutureApplication.APPTAG);
             }
             return false;
         }
@@ -445,8 +444,8 @@ public class MapActivity extends FragmentActivity implements LocationListener,
      * this point, you can request the current location or start periodic updates
      */
     public void onConnected(Bundle bundle) {
-        if (HuntApplication.APPDEBUG) {
-            Log.d("Connected to location services", HuntApplication.APPTAG);
+        if (MyFutureApplication.APPDEBUG) {
+            Log.d("Connected to location services", MyFutureApplication.APPTAG);
         }
         currentLocation = getLocation();
         startPeriodicUpdates();
@@ -456,8 +455,8 @@ public class MapActivity extends FragmentActivity implements LocationListener,
      * Called by Location Services if the connection to the location client drops because of an error.
      */
     public void onDisconnected() {
-        if (HuntApplication.APPDEBUG) {
-            Log.d("Disconnected from location services", HuntApplication.APPTAG);
+        if (MyFutureApplication.APPDEBUG) {
+            Log.d("Disconnected from location services", MyFutureApplication.APPTAG);
         }
     }
 
@@ -475,9 +474,9 @@ public class MapActivity extends FragmentActivity implements LocationListener,
 
             } catch (IntentSender.SendIntentException e) {
 
-                if (HuntApplication.APPDEBUG) {
+                if (MyFutureApplication.APPDEBUG) {
                     // Thrown if Google Play services canceled the original PendingIntent
-                    Log.d(HuntApplication.APPTAG, "An error occurred when connecting to location services.", e);
+                    Log.d(MyFutureApplication.APPTAG, "An error occurred when connecting to location services.", e);
                 }
             }
         } else {
@@ -564,19 +563,19 @@ public class MapActivity extends FragmentActivity implements LocationListener,
         }
         final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
         // Create the map Parse query
-        ParseQuery<VerifyModel> mapQuery = VerifyModel.getQuery();
+        ParseQuery<VideoPostModel> mapQuery = VideoPostModel.getQuery();
         // Set up additional query filters
         mapQuery.whereWithinKilometers("location", myPoint, MAX_POST_SEARCH_DISTANCE);
         mapQuery.include("user");
         mapQuery.orderByDescending("createdAt");
         mapQuery.setLimit(MAX_POST_SEARCH_RESULTS);
         // Kick off the query in the background
-        mapQuery.findInBackground(new FindCallback<VerifyModel>() {
+        mapQuery.findInBackground(new FindCallback<VideoPostModel>() {
             @Override
-            public void done(List<VerifyModel> objects, ParseException e) {
+            public void done(List<VideoPostModel> objects, ParseException e) {
                 if (e != null) {
-                    if (HuntApplication.APPDEBUG) {
-                        Log.d(HuntApplication.APPTAG, "An error occurred while querying for map posts.", e);
+                    if (MyFutureApplication.APPDEBUG) {
+                        Log.d(MyFutureApplication.APPTAG, "An error occurred while querying for map posts.", e);
                     }
                     return;
                 }
@@ -591,7 +590,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
                 // Posts to show on the map
                 Set<String> toKeep = new HashSet<String>();
                 // Loop through the results of the search
-                for (VerifyModel post : objects) {
+                for (VideoPostModel post : objects) {
                     // Add this post to the list of map pins to keep
                     toKeep.add(post.getObjectId());
                     // Check for an existing marker for this post
@@ -630,7 +629,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
                         }
                         // Display a green marker with the post information
                         markerOpts =
-                                markerOpts.title(post.getSString()).snippet(post.getAuthor().getUsername())
+                                markerOpts.title(post.getTitle()).snippet(post.getAuthor().getUsername())
                                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     }
                     // Add a new marker
@@ -776,7 +775,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
 
         menu.findItem(R.id.action_settings).setOnMenuItemClickListener(new OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
-                startActivity(new Intent(GPS.this, SettingsActivity.class));
+                startActivity(new Intent(MapActivity.this, SettingsActivity.class));
                 return true;
             }
         });
@@ -802,7 +801,7 @@ public class MapActivity extends FragmentActivity implements LocationListener,
             errorFragment.setDialog(errorDialog);
 
             // Show the error dialog in the DialogFragment
-            errorFragment.show(getSupportFragmentManager(), HuntApplication.APPTAG);
+            errorFragment.show(getSupportFragmentManager(), MyFutureApplication.APPTAG);
         }
     }
 

@@ -1,10 +1,16 @@
 package com.myfuture;
 
 
+import com.myfuture.model.GeneralInfo;
+import com.myfuture.model.Message;
+import com.myfuture.model.Room;
+import com.myfuture.model.Slot;
+import com.myfuture.model.Speaker;
+import com.myfuture.model.Talk;
 import com.myfuture.model.VideoPostModel;
 
 
-import  com.myfuture.R;
+//import com.myfuture.R;
 import com.parse.Parse;
 import com.parse.ParseACL;
 import com.parse.ParseFacebookUtils;
@@ -21,7 +27,7 @@ import android.util.Log;
 
 public class MyFutureApplication extends Application {
     private final static String TAG = MyFutureApplication.class.getSimpleName();
-    public static final boolean APPDEBUG = false;
+    public static final boolean APPDEBUG = true;
 
     // Debugging tag for the application
     public static final String APPTAG = "Video Map";
@@ -38,13 +44,19 @@ public class MyFutureApplication extends Application {
          * In this tutorial, we'll subclass ParseObject for convenience to
          * create and modify Meal objects
          */
+        ParseObject.registerSubclass(Talk.class);
+        ParseObject.registerSubclass(Slot.class);
+        ParseObject.registerSubclass(Speaker.class);
+        ParseObject.registerSubclass(Message.class);
+        ParseObject.registerSubclass(Room.class);
+        ParseObject.registerSubclass(GeneralInfo.class);
         ParseObject.registerSubclass(VideoPostModel.class);
         preferences = getSharedPreferences("com.myfuture", Context.MODE_PRIVATE);
 
         /*
          * Fill in this section with your Parse credentials
          */
-        Parse.initialize(this, "D79Ngo6Zi9SJriRhq3dnQumbkB1T5BPUQKmLS8P9", "XIjEMLvQRCKX5K1HRAuIreI0x9CW94w5WT8ZVztS");
+        Parse.initialize(this, "o0cDKxRFbug9W7zxFDnxt51RFpL4ZjnhRTfxrXe5", "aawUbxHRMhkGJZRpEbm9tdjXkv4du5DLYzrFzQuk");
         //ParseFacebookUtils.initialize(getString(R.string.facebook_id));
 
         /*

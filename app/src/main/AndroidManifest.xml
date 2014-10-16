@@ -4,7 +4,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="15"
         android:targetSdkVersion="18" />
 
     <permission
@@ -14,12 +14,11 @@
 
     <uses-permission android:name="com.parse.anywall.permission.MAPS_RECEIVE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
     <!--
      The following permission is not required to use
      Google Maps Android API v2, but is recommended.
     -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -35,7 +34,11 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <!-- The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but are recommended. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <!--
 IMPORTANT: Change "com.parse.tutorials.pushnotifications.permission.C2D_MESSAGE" in the lines below
 to match your app's package name + ".permission.C2D_MESSAGE".
@@ -53,21 +56,76 @@ to match your app's package name + ".permission.C2D_MESSAGE".
         <activity
             android:name="com.myfuture.MainActivity"
             android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="com.myfuture.MapActivity"
+            android:label="Map" >
+
+        </activity>
+        <activity android:name=".SettingsActivity"
+            android:label="Settings">
+        </activity>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="@string/google_maps_key"/>
+
+        <activity android:name="com.myfuture.MapsActivity"
+            android:label="@string/title_activity_maps">
+  
+        </activity>
+
+        <activity
+            android:name=".view.DispatchActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+
+        </activity>
+        <activity
+            android:name=".view.ScheduleActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name="MapActivity"
-            android:label="@string/app_name" >
+            android:name=".view.MapsActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/MapsTheme" >
         </activity>
-        <meta-data
-            android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCdFPFoQDERxqsoe94BgSXQ5VRho-MnrkM" />
+        <activity
+            android:name=".view.MyScheduleActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".view.SignInActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.f8.login" >
+        </activity>
+        <activity
+            android:name=".view.TalkActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.f8.talk" />
+        <activity
+            android:name=".view.AlertsActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+        </activity>
 
-        <meta-data android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+        <!-- Facebook Integration -->
+        <activity
+            android:name="com.facebook.LoginActivity"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+
 
 
         <service android:name="com.parse.PushService" />
@@ -86,9 +144,10 @@ to match your app's package name + ".permission.C2D_MESSAGE".
                 <!--
                   IMPORTANT: Change "com.parse.tutorials.pushnotifications" to match your app's package name.
                 -->
-                <category android:name="com.example.shotchart" />
+                <category android:name="com.myfuture" />
             </intent-filter>
         </receiver>
     </application>
 
 </manifest>
+

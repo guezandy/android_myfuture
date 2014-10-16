@@ -23,6 +23,9 @@ public class VideoPostModel extends ParseObject {
         // A default constructor is required.
     }
 
+    public static ParseQuery<VideoPostModel> getQuery() {
+        return ParseQuery.getQuery(VideoPostModel.class);
+    }
 
     public ParseUser getAuthor() {
         return getParseUser("user");
