@@ -70,7 +70,7 @@ to match your app's package name + ".permission.C2D_MESSAGE".
 
         <activity android:name="com.myfuture.MapsActivity"
             android:label="@string/title_activity_maps">
-  
+
         </activity>
 
         <activity

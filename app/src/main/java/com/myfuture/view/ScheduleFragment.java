@@ -90,7 +90,7 @@ public class ScheduleFragment extends Fragment {
 			Talk.findInBackground(scheduleTitles[track],
 					new GetCallback<Talk>() {
 						@Override
-						public void done(Talk talk, ParseException e) {
+						public void done(Talk talk, ParseException e){
 							if (talk != null) {
 								talkList.add(talk);
 								if (!getActivity().isFinishing()) {

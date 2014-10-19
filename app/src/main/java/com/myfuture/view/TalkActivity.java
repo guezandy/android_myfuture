@@ -163,6 +163,7 @@ public class TalkActivity extends ActionBarActivity {
 				favoriteOverlayLayout.setVisibility(View.GONE);
 			}
 
+            
 			favoriteOverlayLayout.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
