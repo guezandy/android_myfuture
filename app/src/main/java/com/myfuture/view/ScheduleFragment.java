@@ -142,22 +142,20 @@ public class ScheduleFragment extends Fragment {
 		((TextView) v.findViewById(R.id.track_title))
 				.setText(scheduleTitles[track]);
 
-		((TextView) v.findViewById(R.id.track_time))
-				.setText(scheduleTimes[track]);
 
 		talkLayout = (LinearLayout) v.findViewById(R.id.color_block);
 
 		if (isFavoriteBreakTalk) {
 			talkLayout
 					.setBackgroundColor(getResources().getColor(R.color.navy));
-			trackDescriptionTextView = ((TextView) v
-					.findViewById(R.id.track_description));
+			//trackDescriptionTextView = ((TextView) v
+			//		.findViewById(R.id.track_description));
 		} else {
-			View header = inflater.inflate(R.layout.list_header_view, null);
-			trackDescriptionHeaderTextView = (TextView) header
-					.findViewById(R.id.track_description_header);
+			//View header = inflater.inflate(R.layout.list_header_view, null);
+			//trackDescriptionHeaderTextView = (TextView) header
+			//		.findViewById(R.id.track_description_header);
 			ListView list = (ListView) v.findViewById(R.id.talk_list_view);
-			list.addHeaderView(header, null, false);
+			//list.addHeaderView(header, null, false);
 			list.setAdapter(adapter);
 			list.setOnItemClickListener(new OnItemClickListener() {
 				@Override
@@ -214,11 +212,6 @@ public class ScheduleFragment extends Fragment {
 				trackDescriptionTextView.setVisibility(View.VISIBLE);
 			}
 		} else {
-			// Update the description header from the Room
-			if (trackDescriptionHeaderTextView != null && trackForTalk != null) {
-				trackDescriptionHeaderTextView.setText(trackForTalk
-						.getDescription());
-			}
 			// Set the background color that distinguishes a trck
 			if (talkLayout != null && talkList.size() > 0 && isAdded()) {
 				Talk firstTalk = talkList.get(0);

@@ -74,11 +74,12 @@ public class ScheduleActivity extends BaseActivity implements
 
 		// Add a tab to the action bar for each subsection
 		for (int i = 0; i < scheduleSectionsPagerAdapter.getCount(); i++) {
-			ActionBar.Tab scheduleTab = actionBar.newTab()
-					.setIcon(scheduleSectionsPagerAdapter.getPageIcon(i))
-					.setTabListener(this);
-			scheduleTab.getIcon().setAlpha(80);
-			actionBar.addTab(scheduleTab);
+                ActionBar.Tab scheduleTab = actionBar.newTab()
+                        .setIcon(scheduleSectionsPagerAdapter.getPageIcon(i))
+                        .setTabListener(this);
+                scheduleTab.getIcon().setAlpha(80);
+                actionBar.addTab(scheduleTab);
+
 		}
 
 	}
@@ -93,14 +94,15 @@ public class ScheduleActivity extends BaseActivity implements
 		@Override
 		public Fragment getItem(int i) {
 			if (i == 0) {
+                //TODO: turn into feed fragment;
 				Fragment fragment = new WelcomeFragment();
 				return fragment;
 			} else {
-				Fragment fragment = new ScheduleFragment();
-				Bundle args = new Bundle();
-				args.putInt(ScheduleFragment.ARG_TRACK, i);
-				fragment.setArguments(args);
-				return fragment;
+                    Fragment fragment = new ScheduleFragment();
+                    Bundle args = new Bundle();
+                    args.putInt(ScheduleFragment.ARG_TRACK, i);
+                    fragment.setArguments(args);
+                    return fragment;
 			}
 		}
 
@@ -112,13 +114,16 @@ public class ScheduleActivity extends BaseActivity implements
 		public int getPageIcon(int position) {
 			switch (position) {
 			case 0:
-				return R.drawable.welcome;
+				return R.drawable.home;
 			case 1:
-				return R.drawable.registration;
-			case 2:
+                //music
 				return R.drawable.keynote;
-			case 3:
+			case 2:
+                //food
 				return R.drawable.lunch;
+			case 3:
+                //after hours
+                return R.drawable.party;
 			case 4:
 				return R.drawable.build;
 			case 5:

@@ -44,18 +44,18 @@
     <string name="welcome_message">Welcome, %1$s</string>
 
     <string-array name="drawer_schedule_content">
-        <item>Welcome</item>
-        <item>Registration</item>
-        <item>Keynotes</item>
-        <item>Lunch Break</item>
-        <item>Build</item>
-        <item>Grow</item>
-        <item>Monetize</item>
-        <item>The Hacker Way</item>
-        <item>The Garage</item>
-        <item>Games Lounge</item>
-        <item>Internet.org</item>
-        <item>After Party</item>
+        <item>Home</item>
+        <item>Events</item>
+        <item>Food</item>
+        <item>Night life</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
+        <item>Label</item>
     </string-array>
     <string-array name="drawer_schedule_times">
         <item></item>

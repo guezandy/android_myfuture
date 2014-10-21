@@ -7,7 +7,7 @@
     <LinearLayout
         android:id="@+id/color_block"
         android:layout_width="match_parent"
-        android:layout_height="260dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <TextView
@@ -15,18 +15,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:paddingTop="140dp"
+            android:paddingTop="100dp"
             android:textColor="@android:color/white"
             android:textSize="36sp" />
 
-        <TextView
-            android:id="@+id/track_time"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingBottom="@dimen/title_bar_padding"
-            android:textColor="@android:color/white"
-            android:textSize="20sp" />
     </LinearLayout>
 
     <TextView

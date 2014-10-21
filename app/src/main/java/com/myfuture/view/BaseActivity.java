@@ -49,6 +49,7 @@ public class BaseActivity extends ActionBarActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
+
 	}
 
 	@Override
@@ -76,15 +77,7 @@ public class BaseActivity extends ActionBarActivity {
 
 		switch (item.getItemId()) {
 
-		case R.id.action_schedule: {
-			if (!(this instanceof ScheduleActivity)) {
-				Intent i = new Intent(this, ScheduleActivity.class);
-				startActivityForResult(i, 0);
-				finish();
-			}
-			break;
-		}
-
+//TODO: Delete this
 		case R.id.action_my_schedule: {
 			if (!(this instanceof MyScheduleActivity)) {
 				Intent i = new Intent(this, MyScheduleActivity.class);
@@ -93,7 +86,7 @@ public class BaseActivity extends ActionBarActivity {
 			}
 			break;
 		}
-
+//Alerts is the notifications
 		case R.id.action_alerts: {
 			if (!(this instanceof AlertsActivity)) {
 				Intent i = new Intent(this, AlertsActivity.class);
@@ -123,13 +116,6 @@ public class BaseActivity extends ActionBarActivity {
 			break;
 		}
 
-		case R.id.action_terms_link: {
-			String url = getResources().getString(R.string.terms_link);
-			Intent i = new Intent(Intent.ACTION_VIEW);
-			i.setData(Uri.parse(url));
-			startActivity(i);
-			break;
-		}
 		}
 		return super.onOptionsItemSelected(item);
 	}
