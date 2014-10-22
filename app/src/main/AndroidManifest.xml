@@ -57,21 +57,11 @@ to match your app's package name + ".permission.C2D_MESSAGE".
             android:name="com.myfuture.MainActivity"
             android:label="@string/app_name" >
         </activity>
-        <activity
-            android:name="com.myfuture.MapActivity"
-            android:label="Map" >
-
-        </activity>
         <activity android:name=".SettingsActivity"
             android:label="Settings">
         </activity>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
         <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="@string/google_maps_key"/>
-
-        <activity android:name="com.myfuture.MapsActivity"
-            android:label="@string/title_activity_maps">
-
-        </activity>
 
         <activity
             android:name=".view.DispatchActivity"
@@ -80,13 +70,19 @@ to match your app's package name + ".permission.C2D_MESSAGE".
 
         </activity>
         <activity
+            android:name=".TestLayoutActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+
+        </activity>
+
+        <activity
             android:name=".view.ScheduleActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
+import com.myfuture.view.*;
 import com.parse.ParseUser;
 import com.myfuture.R;
 /**
@@ -54,7 +55,7 @@ public class SettingsActivity extends Activity {
         ((Button) findViewById(R.id.saveDistance)).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 // Start and intent for the dispatch activity
-                Intent intent = new Intent(SettingsActivity.this, MapActivity.class);
+                Intent intent = new Intent(SettingsActivity.this, com.myfuture.view.MapsActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }

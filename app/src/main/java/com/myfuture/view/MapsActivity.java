@@ -1,156 +1,842 @@
-/**
- * Copyright 2014 Facebook, Inc.
- *
- * You are hereby granted a non-exclusive, worldwide, royalty-free license to
- * use, copy, modify, and distribute this software in source code or binary
- * form for use in connection with the web services and APIs provided by
- * Facebook.
- *
- * As with any software that integrates with the Facebook platform, your use
- * of this software is subject to the Facebook Developer Principles and
- * Policies [http://developers.facebook.com/policy/]. This copyright notice
- * shall be included in all copies or substantial portions of the software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- */
-
 package com.myfuture.view;
 
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.matabii.dev.scaleimageview.ScaleImageView;
+import com.myfuture.SettingsActivity;
+import com.myfuture.model.VideoPostModel;
+import com.myfuture.MyFutureApplication;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentSender;
+import android.graphics.Color;
+import android.location.Location;
+import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.text.InputType;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.myfuture.R;
 
-public class MapsActivity extends BaseActivity implements ActionBar.TabListener {
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap.CancelableCallback;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.FindCallback;
+import com.parse.ParseACL;
+import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseQuery;
+import com.parse.ParseQueryAdapter;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
-	private MapsPagerAdapter mapsPagerAdapter;
-	private ViewPager mapsViewPager;
+public class MapsActivity extends BaseActivity implements LocationListener,
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_map);
+    /*
+     * Define a request code to send to Google Play services This code is returned in
+     * Activity.onActivityResult
+     */
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
-		final ActionBar actionBar = getSupportActionBar();
-		actionBar.setHomeButtonEnabled(false);
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+    /*
+     * Constants for location update parameters
+     */
+    // Milliseconds per second
+    private static final int MILLISECONDS_PER_SECOND = 1000;
 
-		mapsViewPager = (ViewPager) findViewById(R.id.pager);
-		mapsPagerAdapter = new MapsPagerAdapter(getSupportFragmentManager());
-		mapsViewPager.setAdapter(mapsPagerAdapter);
-		mapsViewPager
-				.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-					@Override
-					public void onPageSelected(int position) {
-						actionBar.setSelectedNavigationItem(position);
-					}
-				});
+    // The update interval
+    private static final int UPDATE_INTERVAL_IN_SECONDS = 5;
 
-		// Add a tab to the action bar for each subsection
-		for (int i = 0; i < mapsPagerAdapter.getCount(); i++) {
+    // A fast interval ceiling
+    private static final int FAST_CEILING_IN_SECONDS = 1;
 
-			actionBar.addTab(actionBar.newTab()
-					.setText(mapsPagerAdapter.getPageTitle(i))
-					.setTabListener(this));
-		}
+    // Update interval in milliseconds
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = MILLISECONDS_PER_SECOND
+            * UPDATE_INTERVAL_IN_SECONDS;
 
-	}
+    // A fast ceiling of update intervals, used when the app is visible
+    private static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS = MILLISECONDS_PER_SECOND
+            * FAST_CEILING_IN_SECONDS;
 
-	private class MapsPagerAdapter extends FragmentStatePagerAdapter {
+    /*
+     * Constants for handling location results
+     */
+    // Conversion from feet to meters
+    private static final float METERS_PER_FEET = 0.3048f;
 
-		public MapsPagerAdapter(android.support.v4.app.FragmentManager fm) {
-			super(fm);
-		}
+    // Conversion from kilometers to meters
+    private static final int METERS_PER_KILOMETER = 1000;
 
-		@Override
-		public Fragment getItem(int i) {
-			Fragment fragment = new MapDetailFragment();
-			Bundle args = new Bundle();
-			args.putInt(MapDetailFragment.ARG_MAP, i);
-			fragment.setArguments(args);
-			return fragment;
-		}
+    // Initial offset for calculating the map bounds
+    private static final double OFFSET_CALCULATION_INIT_DIFF = 1.0;
 
-		@Override
-		public int getCount() {
-			return 3;
-		}
+    // Accuracy for calculating the map bounds
+    private static final float OFFSET_CALCULATION_ACCURACY = 0.01f;
 
-		@Override
-		public CharSequence getPageTitle(int position) {
-			switch (position) {
-			case 0:
-				return getResources().getString(R.string.map_title_morning);
+    // Maximum results returned from a Parse query
+    private static final int MAX_POST_SEARCH_RESULTS = 20;
 
-			case 1:
-				return getResources().getString(R.string.map_title_afternoon);
+    // Maximum post search radius for map in kilometers
+    private static final int MAX_POST_SEARCH_DISTANCE = 100;
 
-			default:
-				return getResources().getString(R.string.map_title_evening);
-			}
-		}
-	}
+    /*
+     * Other class member variables
+     */
+    // Map fragment
+    private SupportMapFragment map;
 
-	public static class MapDetailFragment extends Fragment {
+    // Represents the circle around a map
+    private Circle mapCircle;
 
-		public static final String ARG_MAP = "map";
+    // Fields for the map radius in feet
+    private float radius;
+    private float lastRadius;
 
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_map_detail,
-					container, false);
-			int mapId = getArguments().getInt(ARG_MAP);
-			ScaleImageView map = (ScaleImageView) rootView
-					.findViewById(R.id.map_view);
-			switch (mapId) {
-			case 0:
-				map.setImageResource(R.drawable.map_morning);
-				return rootView;
+    // Fields for helping process map and location changes
+    private final Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
+    private int mostRecentMapUpdate = 0;
+    private boolean hasSetUpInitialLocation = false;
+    private String selectedObjectId;
+    private Location lastLocation = null;
+    private Location currentLocation = null;
 
-			case 1:
-				map.setImageResource(R.drawable.map_afternoon);
-				return rootView;
+    // A request to connect to Location Services
+    private LocationRequest locationRequest;
 
-			default:
-				map.setImageResource(R.drawable.map_night);
-				return rootView;
-			}
-		}
-	}
+    // Stores the current instantiation of the location client in this object
+    private LocationClient locationClient;
 
-	@Override
-	public void onTabReselected(Tab arg0, FragmentTransaction arg1) {
-		// Do nothing
-	}
+    // Adapter for the Parse query
+    private ParseQueryAdapter<VideoPostModel> posts;
 
-	@Override
-	public void onTabSelected(Tab arg0, FragmentTransaction arg1) {
-		mapsViewPager.setCurrentItem(arg0.getPosition());
-	}
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        radius = MyFutureApplication.getSearchDistance();
+        lastRadius = radius;
+        setContentView(R.layout.activity_post_map);
 
-	@Override
-	public void onTabUnselected(Tab arg0, FragmentTransaction arg1) {
-		// Do nothing
-	}
+        // Create a new global location parameters object
+        locationRequest = LocationRequest.create();
+
+        // Set the update interval
+        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        // Use high accuracy
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        // Set the interval ceiling to one minute
+        locationRequest.setFastestInterval(FAST_INTERVAL_CEILING_IN_MILLISECONDS);
+
+        // Create a new location client, using the enclosing class to handle callbacks.
+        locationClient = new LocationClient(this, this, this);
+
+        // Set up a customized query
+        ParseQueryAdapter.QueryFactory<VideoPostModel> factory =
+                new ParseQueryAdapter.QueryFactory<VideoPostModel>() {
+                    public ParseQuery<VideoPostModel> create() {
+                        Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
+                        ParseQuery<VideoPostModel> query = VideoPostModel.getQuery();
+                        query.include("user");
+                        query.orderByDescending("createdAt");
+                        query.whereWithinKilometers("location", geoPointFromLocation(myLoc), radius
+                                * METERS_PER_FEET / METERS_PER_KILOMETER);
+                        query.setLimit(MAX_POST_SEARCH_RESULTS);
+                        return query;
+                    }
+                };
+
+      //  Button stop = (Button) this.findViewById(R.id.back);
+      //  stop.setOnClickListener(new OnClickListener() {
+      //      @Override
+      //      public void onClick(View v) {
+      //          endGPS();
+       //     }
+       // });
+
+        // Set up the query adapter
+        posts = new ParseQueryAdapter<VideoPostModel>(this, factory) {
+            @Override
+            public View getItemView(VideoPostModel post, View view, ViewGroup parent) {
+                if (view == null) {
+                    view = View.inflate(getContext(), R.layout.list_post_items, null);
+                }
+                TextView contentView = (TextView) view.findViewById(R.id.contentView);
+                TextView usernameView = (TextView) view.findViewById(R.id.usernameView);
+                contentView.setText(post.getTitle());
+                usernameView.setText(post.getAuthor().getUsername());
+                return view;
+            }
+        };
+
+        // Disable automatic loading when the adapter is attached to a view.
+        posts.setAutoload(false);
+
+        // Disable pagination, we'll manage the query limit ourselves
+        posts.setPaginationEnabled(false);
+
+        // Attach the query adapter to the view
+        ListView postsView = (ListView) this.findViewById(R.id.postsView);
+        postsView.setAdapter(posts);
+
+        // Set up the handler for an item's selection
+        postsView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final VideoPostModel item = posts.getItem(position);
+                selectedObjectId = item.getObjectId();
+                map.getMap().animateCamera(
+                        CameraUpdateFactory.newLatLng(new LatLng(item.getLocation().getLatitude(), item
+                                .getLocation().getLongitude())), new CancelableCallback() {
+                            public void onFinish() {
+                                Marker marker = mapMarkers.get(item.getObjectId());
+                                if (marker != null) {
+                                    marker.showInfoWindow();
+                                }
+                            }
+
+                            public void onCancel() {
+                            }
+                        });
+                Marker marker = mapMarkers.get(item.getObjectId());
+                if (marker != null) {
+                    marker.showInfoWindow();
+                }
+            }
+        });
+
+        // Set up the map fragment
+        map = (SupportMapFragment) this.getSupportFragmentManager().findFragmentById(R.id.map);
+        // Enable the current location "blue dot"
+        map.getMap().setMyLocationEnabled(true);
+        // Set up the camera change handler
+        map.getMap().setOnCameraChangeListener(new OnCameraChangeListener() {
+            public void onCameraChange(CameraPosition position) {
+                // When the camera changes, update the query
+                doMapQuery();
+            }
+        });
+
+        // Set up the handler for the post button click
+        Button postButton = (Button) findViewById(R.id.postButton);
+        postButton.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                // Only allow posts if we have a location
+                Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
+                if (myLoc == null) {
+                    Toast.makeText(MapsActivity.this,
+                            "Please try again after your location appears on the map.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
+                // Create the builder where the new post is entered
+                AlertDialog.Builder alert = new AlertDialog.Builder(MapsActivity.this);
+                alert.setTitle("Describe where you are....");
+                final EditText input = new EditText(MapsActivity.this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                alert.setView(input);
+                // Handle the dialog input
+                alert.setPositiveButton("Post", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Create a post.
+                        VideoPostModel post = new VideoPostModel();
+                        // Set the location to the current user's location
+                        post.setLocation(myPoint);
+                        post.setTitle(input.getText().toString());
+                        post.setAuthor(ParseUser.getCurrentUser());
+                        ParseACL acl = new ParseACL();
+                        // Give public read access
+                        acl.setPublicReadAccess(true);
+                        post.setACL(acl);
+                        // Save the post
+                        post.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(ParseException e) {
+                                // Update the list view and the map
+                                doListQuery();
+                                doMapQuery();
+                            }
+                        });
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing.
+                    }
+                });
+                alert.create().show();
+            }
+        });
+    }
+
+    /*
+     * Called when the Activity is no longer visible at all. Stop updates and disconnect.
+     */
+    @Override
+    public void onStop() {
+        // If the client is connected
+        if (locationClient.isConnected()) {
+            stopPeriodicUpdates();
+        }
+
+        // After disconnect() is called, the client is considered "dead".
+        locationClient.disconnect();
+
+        super.onStop();
+    }
+
+    /*
+     * Called when the Activity is restarted, even before it becomes visible.
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // Connect to the location services client
+        locationClient.connect();
+    }
+
+    /*
+     * Called when the Activity is resumed. Updates the view.
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Get the latest search distance preference
+        radius = MyFutureApplication.getSearchDistance();
+        // Checks the last saved location to show cached data if it's available
+        if (lastLocation != null) {
+            LatLng myLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            // If the search distance preference has been changed, move
+            // map to new bounds.
+            if (lastRadius != radius) {
+                updateZoom(myLatLng);
+            }
+            // Update the circle map
+            updateCircle(myLatLng);
+        }
+        // Save the current radius
+        lastRadius = radius;
+        // Query for the latest data to update the views.
+        doMapQuery();
+        doListQuery();
+        //endGPS();
+    }
+
+    /*
+     * Handle results returned to this Activity by other Activities started with
+     * startActivityForResult(). In particular, the method onConnectionFailed() in
+     * LocationUpdateRemover and LocationUpdateRequester may call startResolutionForResult() to start
+     * an Activity that handles Google Play services problems. The result of this call returns here,
+     * to onActivityResult.
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        // Choose what to do based on the request code
+        switch (requestCode) {
+
+            // If the request code matches the code sent in onConnectionFailed
+            case CONNECTION_FAILURE_RESOLUTION_REQUEST:
+
+                switch (resultCode) {
+                    // If Google Play services resolved the problem
+                    case Activity.RESULT_OK:
+
+                        if (MyFutureApplication.APPDEBUG) {
+                            // Log the result
+                            Log.d(MyFutureApplication.APPTAG, "Connected to Google Play services");
+                        }
+
+                        break;
+
+                    // If any other result was returned by Google Play services
+                    default:
+                        if (MyFutureApplication.APPDEBUG) {
+                            // Log the result
+                            Log.d(MyFutureApplication.APPTAG, "Could not connect to Google Play services");
+                        }
+                        break;
+                }
+
+                // If any other request code was received
+            default:
+                if (MyFutureApplication.APPDEBUG) {
+                    // Report that this Activity received an unknown requestCode
+                    Log.d(MyFutureApplication.APPTAG, "Unknown request code received for the activity");
+                }
+                break;
+        }
+    }
+
+
+    public void endGPS(){
+        Intent i = new Intent(MapsActivity.this, BaseActivity.class);
+        startActivity(i);
+    }
+    /*
+     * Verify that Google Play services is available before making a request.
+     *
+     * @return true if Google Play services is available, otherwise false
+     */
+    private boolean servicesConnected() {
+        // Check that Google Play services is available
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+
+        // If Google Play services is available
+        if (ConnectionResult.SUCCESS == resultCode) {
+            if (MyFutureApplication.APPDEBUG) {
+                // In debug mode, log the status
+                Log.d(MyFutureApplication.APPTAG, "Google play services available");
+            }
+            // Continue
+            return true;
+            // Google Play services was not available for some reason
+        } else {
+            // Display an error dialog
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0);
+            if (dialog != null) {
+                ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+                errorFragment.setDialog(dialog);
+                errorFragment.show(getSupportFragmentManager(), MyFutureApplication.APPTAG);
+            }
+            return false;
+        }
+    }
+
+    /*
+     * Called by Location Services when the request to connect the client finishes successfully. At
+     * this point, you can request the current location or start periodic updates
+     */
+    public void onConnected(Bundle bundle) {
+        if (MyFutureApplication.APPDEBUG) {
+            Log.d("Connected to location services", MyFutureApplication.APPTAG);
+        }
+        currentLocation = getLocation();
+        startPeriodicUpdates();
+    }
+
+    /*
+     * Called by Location Services if the connection to the location client drops because of an error.
+     */
+    public void onDisconnected() {
+        if (MyFutureApplication.APPDEBUG) {
+            Log.d("Disconnected from location services", MyFutureApplication.APPTAG);
+        }
+    }
+
+    /*
+     * Called by Location Services if the attempt to Location Services fails.
+     */
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // Google Play services can resolve some errors it detects. If the error has a resolution, try
+        // sending an Intent to start a Google Play services activity that can resolve error.
+        if (connectionResult.hasResolution()) {
+            try {
+
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+
+            } catch (IntentSender.SendIntentException e) {
+
+                if (MyFutureApplication.APPDEBUG) {
+                    // Thrown if Google Play services canceled the original PendingIntent
+                    Log.d(MyFutureApplication.APPTAG, "An error occurred when connecting to location services.", e);
+                }
+            }
+        } else {
+
+            // If no resolution is available, display a dialog to the user with the error.
+            showErrorDialog(connectionResult.getErrorCode());
+        }
+    }
+
+    /*
+     * Report location updates to the UI.
+     */
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+        if (lastLocation != null
+                && geoPointFromLocation(location)
+                .distanceInKilometersTo(geoPointFromLocation(lastLocation)) < 0.01) {
+            // If the location hasn't changed by more than 10 meters, ignore it.
+            return;
+        }
+        lastLocation = location;
+        LatLng myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        if (!hasSetUpInitialLocation) {
+            // Zoom to the current location.
+            updateZoom(myLatLng);
+            hasSetUpInitialLocation = true;
+        }
+        // Update map radius indicator
+        updateCircle(myLatLng);
+        doMapQuery();
+        doListQuery();
+    }
+
+    /*
+     * In response to a request to start updates, send a request to Location Services
+     */
+    private void startPeriodicUpdates() {
+        locationClient.requestLocationUpdates(locationRequest, this);
+    }
+
+    /*
+     * In response to a request to stop updates, send a request to Location Services
+     */
+    private void stopPeriodicUpdates() {
+        locationClient.removeLocationUpdates(this);
+    }
+
+    /*
+     * Get the current location
+     */
+    private Location getLocation() {
+        // If Google Play Services is available
+        if (servicesConnected()) {
+            // Get the current location
+            return locationClient.getLastLocation();
+        } else {
+            return null;
+        }
+    }
+
+    /*
+     * Set up a query to update the list view
+     */
+    private void doListQuery() {
+        Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
+        // If location info is available, load the data
+        if (myLoc != null) {
+            // Refreshes the list view with new data based
+            // usually on updated location data.
+            posts.loadObjects();
+        }
+    }
+
+    /*
+     * Set up the query to update the map view
+     */
+    private void doMapQuery() {
+        final int myUpdateNumber = ++mostRecentMapUpdate;
+        Location myLoc = (currentLocation == null) ? lastLocation : currentLocation;
+        // If location info isn't available, clean up any existing markers
+        if (myLoc == null) {
+            cleanUpMarkers(new HashSet<String>());
+            return;
+        }
+        final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
+        // Create the map Parse query
+        ParseQuery<VideoPostModel> mapQuery = VideoPostModel.getQuery();
+        // Set up additional query filters
+        mapQuery.whereWithinKilometers("location", myPoint, MAX_POST_SEARCH_DISTANCE);
+        mapQuery.include("user");
+        mapQuery.orderByDescending("createdAt");
+        mapQuery.setLimit(MAX_POST_SEARCH_RESULTS);
+        // Kick off the query in the background
+        mapQuery.findInBackground(new FindCallback<VideoPostModel>() {
+            @Override
+            public void done(List<VideoPostModel> objects, ParseException e) {
+                if (e != null) {
+                    if (MyFutureApplication.APPDEBUG) {
+                        Log.d(MyFutureApplication.APPTAG, "An error occurred while querying for map posts.", e);
+                    }
+                    return;
+                }
+        /*
+         * Make sure we're processing results from
+         * the most recent update, in case there
+         * may be more than one in progress.
+         */
+                if (myUpdateNumber != mostRecentMapUpdate) {
+                    return;
+                }
+                // Posts to show on the map
+                Set<String> toKeep = new HashSet<String>();
+                // Loop through the results of the search
+                for (VideoPostModel post : objects) {
+                    // Add this post to the list of map pins to keep
+                    toKeep.add(post.getObjectId());
+                    // Check for an existing marker for this post
+                    Marker oldMarker = mapMarkers.get(post.getObjectId());
+                    // Set up the map marker's location
+                    MarkerOptions markerOpts =
+                            new MarkerOptions().position(new LatLng(post.getLocation().getLatitude(), post
+                                    .getLocation().getLongitude()));
+                    // Set up the marker properties based on if it is within the search radius
+                    if (post.getLocation().distanceInKilometersTo(myPoint) > radius * METERS_PER_FEET
+                            / METERS_PER_KILOMETER) {
+                        // Check for an existing out of range marker
+                        if (oldMarker != null) {
+                            if (oldMarker.getSnippet() == null) {
+                                // Out of range marker already exists, skip adding it
+                                continue;
+                            } else {
+                                // Marker now out of range, needs to be refreshed
+                                oldMarker.remove();
+                            }
+                        }
+                        // Display a red marker with a predefined title and no snippet
+                        markerOpts =
+                                markerOpts.title(getResources().getString(R.string.post_out_of_range)).icon(
+                                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    } else {
+                        // Check for an existing in range marker
+                        if (oldMarker != null) {
+                            if (oldMarker.getSnippet() != null) {
+                                // In range marker already exists, skip adding it
+                                continue;
+                            } else {
+                                // Marker now in range, needs to be refreshed
+                                oldMarker.remove();
+                            }
+                        }
+                        // Display a green marker with the post information
+                        markerOpts =
+                                markerOpts.title(post.getTitle()).snippet(post.getAuthor().getUsername())
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    }
+                    // Add a new marker
+                    Marker marker = map.getMap().addMarker(markerOpts);
+                    mapMarkers.put(post.getObjectId(), marker);
+                    if (post.getObjectId().equals(selectedObjectId)) {
+                        marker.showInfoWindow();
+                        selectedObjectId = null;
+                    }
+                }
+                // Clean up old markers.
+                cleanUpMarkers(toKeep);
+            }
+        });
+    }
+
+    /*
+     * Helper method to clean up old markers
+     */
+    private void cleanUpMarkers(Set<String> markersToKeep) {
+        for (String objId : new HashSet<String>(mapMarkers.keySet())) {
+            if (!markersToKeep.contains(objId)) {
+                Marker marker = mapMarkers.get(objId);
+                marker.remove();
+                mapMarkers.get(objId).remove();
+                mapMarkers.remove(objId);
+            }
+        }
+    }
+
+    /*
+     * Helper method to get the Parse GEO point representation of a location
+     */
+    private ParseGeoPoint geoPointFromLocation(Location loc) {
+        return new ParseGeoPoint(loc.getLatitude(), loc.getLongitude());
+    }
+
+    /*
+     * Displays a circle on the map representing the search radius
+     */
+    private void updateCircle(LatLng myLatLng) {
+        if (mapCircle == null) {
+            mapCircle =
+                    map.getMap().addCircle(
+                            new CircleOptions().center(myLatLng).radius(radius * METERS_PER_FEET));
+            int baseColor = Color.DKGRAY;
+            mapCircle.setStrokeColor(baseColor);
+            mapCircle.setStrokeWidth(2);
+            mapCircle.setFillColor(Color.argb(50, Color.red(baseColor), Color.green(baseColor),
+                    Color.blue(baseColor)));
+        }
+        mapCircle.setCenter(myLatLng);
+        mapCircle.setRadius(radius * METERS_PER_FEET); // Convert radius in feet to meters.
+    }
+
+    /*
+     * Zooms the map to show the area of interest based on the search radius
+     */
+    private void updateZoom(LatLng myLatLng) {
+        // Get the bounds to zoom to
+        LatLngBounds bounds = calculateBoundsWithCenter(myLatLng);
+        // Zoom to the given bounds
+        map.getMap().animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
+    }
+
+    /*
+     * Helper method to calculate the offset for the bounds used in map zooming
+     */
+    private double calculateLatLngOffset(LatLng myLatLng, boolean bLatOffset) {
+        // The return offset, initialized to the default difference
+        double latLngOffset = OFFSET_CALCULATION_INIT_DIFF;
+        // Set up the desired offset distance in meters
+        float desiredOffsetInMeters = radius * METERS_PER_FEET;
+        // Variables for the distance calculation
+        float[] distance = new float[1];
+        boolean foundMax = false;
+        double foundMinDiff = 0;
+        // Loop through and get the offset
+        do {
+            // Calculate the distance between the point of interest
+            // and the current offset in the latitude or longitude direction
+            if (bLatOffset) {
+                Location.distanceBetween(myLatLng.latitude, myLatLng.longitude, myLatLng.latitude
+                        + latLngOffset, myLatLng.longitude, distance);
+            } else {
+                Location.distanceBetween(myLatLng.latitude, myLatLng.longitude, myLatLng.latitude,
+                        myLatLng.longitude + latLngOffset, distance);
+            }
+            // Compare the current difference with the desired one
+            float distanceDiff = distance[0] - desiredOffsetInMeters;
+            if (distanceDiff < 0) {
+                // Need to catch up to the desired distance
+                if (!foundMax) {
+                    foundMinDiff = latLngOffset;
+                    // Increase the calculated offset
+                    latLngOffset *= 2;
+                } else {
+                    double tmp = latLngOffset;
+                    // Increase the calculated offset, at a slower pace
+                    latLngOffset += (latLngOffset - foundMinDiff) / 2;
+                    foundMinDiff = tmp;
+                }
+            } else {
+                // Overshot the desired distance
+                // Decrease the calculated offset
+                latLngOffset -= (latLngOffset - foundMinDiff) / 2;
+                foundMax = true;
+            }
+        } while (Math.abs(distance[0] - desiredOffsetInMeters) > OFFSET_CALCULATION_ACCURACY);
+        return latLngOffset;
+    }
+
+    /*
+     * Helper method to calculate the bounds for map zooming
+     */
+    public LatLngBounds calculateBoundsWithCenter(LatLng myLatLng) {
+        // Create a bounds
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+
+        // Calculate east/west points that should to be included
+        // in the bounds
+        double lngDifference = calculateLatLngOffset(myLatLng, false);
+        LatLng east = new LatLng(myLatLng.latitude, myLatLng.longitude + lngDifference);
+        builder.include(east);
+        LatLng west = new LatLng(myLatLng.latitude, myLatLng.longitude - lngDifference);
+        builder.include(west);
+
+        // Calculate north/south points that should to be included
+        // in the bounds
+        double latDifference = calculateLatLngOffset(myLatLng, true);
+        LatLng north = new LatLng(myLatLng.latitude + latDifference, myLatLng.longitude);
+        builder.include(north);
+        LatLng south = new LatLng(myLatLng.latitude - latDifference, myLatLng.longitude);
+        builder.include(south);
+
+        return builder.build();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        menu.findItem(R.id.action_settings).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                startActivity(new Intent(MapsActivity.this, SettingsActivity.class));
+                return true;
+            }
+        });
+        return true;
+    }
+
+    /*
+     * Show a dialog returned by Google Play services for the connection error code
+     */
+    private void showErrorDialog(int errorCode) {
+        // Get the error dialog from Google Play services
+        Dialog errorDialog =
+                GooglePlayServicesUtil.getErrorDialog(errorCode, this,
+                        CONNECTION_FAILURE_RESOLUTION_REQUEST);
+
+        // If Google Play services can provide an error dialog
+        if (errorDialog != null) {
+
+            // Create a new DialogFragment in which to show the error dialog
+            ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+
+            // Set the dialog in the DialogFragment
+            errorFragment.setDialog(errorDialog);
+
+            // Show the error dialog in the DialogFragment
+            errorFragment.show(getSupportFragmentManager(), MyFutureApplication.APPTAG);
+        }
+    }
+
+    /*
+     * Define a DialogFragment to display the error dialog generated in showErrorDialog.
+     */
+    public static class ErrorDialogFragment extends DialogFragment {
+        // Global field to contain the error dialog
+        private Dialog mDialog;
+
+        /**
+         * Default constructor. Sets the dialog field to null
+         */
+        public ErrorDialogFragment() {
+            super();
+            mDialog = null;
+        }
+
+        /*
+         * Set the dialog to display
+         *
+         * @param dialog An error dialog
+         */
+        public void setDialog(Dialog dialog) {
+            mDialog = dialog;
+        }
+
+        /*
+         * This method must return a Dialog to the DialogFragment.
+         */
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return mDialog;
+        }
+    }
+
 }

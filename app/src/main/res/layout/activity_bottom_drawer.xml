@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/button_new"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:text="@string/app_name"
+            android:padding="12dp"
+            android:gravity="center"
+            android:background="#0BB5FF" />
+
+        <GridView
+            android:id="@+id/grid_outfit"
+            android:layout_above="@id/button_new"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="2"
+            android:background="@color/grey_light"
+            android:horizontalSpacing="2dp"
+            android:verticalSpacing="2dp"
+            android:padding="2dp"></GridView>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+        <EditText
+            android:id="@+id/input_outfit_name"
+            android:hint="Outfit name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@+id/button_view"
+            android:layout_marginBottom="30dp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_below="@id/input_outfit_name"
+            android:layout_above="@id/button_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                >
+                <com.parse.ParseImageView
+                    android:id="@+id/image_top_selected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="25dp"
+                    />
+                <com.myfuture.ui.IconCustomTextView
+                    android:id="@+id/snag_indicator_top"
+                    android:layout_width="45dp"
+                    android:layout_below="@id/image_top_selected"
+                    android:layout_toRightOf="@id/image_top_selected"
+                    android:layout_marginLeft="-25dp"
+                    android:layout_marginRight="-25dp"
+                    android:layout_height="45dp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:text="@string/icon_tag"/>
+                <com.parse.ParseImageView
+                    android:id="@+id/image_bottom_selected"
+                    android:layout_toRightOf="@id/image_top_selected"
+                    android:layout_toEndOf="@id/image_top_selected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="25dp"
+                    />
+                <com.myfuture.ui.IconCustomTextView
+                    android:id="@+id/snag_indicator_bottom"
+                    android:layout_width="45dp"
+                    android:layout_below="@id/image_bottom_selected"
+                    android:layout_toRightOf="@id/image_bottom_selected"
+                    android:layout_marginLeft="-25dp"
+                    android:layout_marginRight="-25dp"
+                    android:layout_height="45dp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:text="@string/icon_tag"/>
+                <com.parse.ParseImageView
+                    android:id="@+id/image_shoe_selected"
+                    android:layout_below="@id/image_top_selected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="25dp"
+                    />
+                <com.myfuture.ui.IconCustomTextView
+                    android:id="@+id/snag_indicator_shoes"
+                    android:layout_width="45dp"
+                    android:layout_below="@id/image_shoe_selected"
+                    android:layout_toRightOf="@id/image_shoe_selected"
+                    android:layout_marginLeft="-25dp"
+                    android:layout_marginRight="-25dp"
+                    android:layout_height="45dp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:text="@string/icon_tag"/>
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/outfit_select_view"
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:id="@+id/bottom_slider"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:background="#d7d7d7"
+                android:gravity="center"
+                android:layout_alignParentBottom="true">
+
+                <com.myfuture.ui.IconCustomTextView
+                    android:id="@+id/selector_chevron"
+                    android:textSize="24sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/icon_down"
+                    android:rotation="180" />
+            </LinearLayout>
+            <!--This will animate in when bottom_slider is pressed-->
+            <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/outfit_select_slider"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/creator_bottom_drawer_height"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:background="#d7d7d7">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="240dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/creator_gradient_left">
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="240dp"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentRight="true"
+                        android:background="@drawable/creator_gradient_right">
+
+                    </LinearLayout>
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!--This is the popup overlay-->
+
+        <RelativeLayout
+            android:id="@+id/item_detail_popup"
+            android:layout_width="220dp"
+            android:layout_height="140dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="100dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/white"
+
+                android:alpha=".9"></LinearLayout>
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/detail_popup"
+                ></LinearLayout>
+
+            <TextView
+                android:id="@+id/item_store"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="12dp"
+                tools:text="Gap" />
+
+            <TextView
+                android:id="@+id/item_description"
+                android:layout_below="@id/item_store"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                tools:text="Brand Striped Boatneck" />
+
+            <TextView
+                android:id="@+id/item_size"
+                android:layout_below="@id/item_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                tools:text="Color: Red" />
+
+            <TextView
+                android:id="@+id/item_color"
+                android:layout_below="@id/item_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                tools:text="Size: M" />
+
+            <TextView
+                android:id="@+id/item_cost"
+                android:layout_below="@id/item_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#00CCFF"
+                android:layout_marginLeft="12dp"
+                tools:text="$55.00" />
+
+            <com.myfuture.ui.IconCustomTextView
+                android:id="@+id/button_add_item"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_alignParentBottom="true"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:text="@string/icon_cart"
+                android:gravity="center"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/circle_button"
+                android:layout_marginRight="12dp"
+                android:layout_marginBottom="12dp" />
+        </RelativeLayout>
+    </RelativeLayout>
+</ViewFlipper>

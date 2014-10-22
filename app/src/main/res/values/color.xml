@@ -16,6 +16,10 @@
     <color name="internetorg">#d32ec6</color>
     <color name="gameslounge">#d8532f</color>
     <color name="transparent">#00000000</color>
-    
+    <color name="grey_light">#cccc</color>
+    <color name="grey_dark">#666666</color>
+    <color name="gray">#999999</color>
+    <color name="blue">#36B0F3</color>
+    <color name="grey_dark_semi_transparent">#ff666666</color>
 
 </resources>
